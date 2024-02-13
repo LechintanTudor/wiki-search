@@ -1,10 +1,13 @@
 package ro.ubb.search.document;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
-public record Document(String title, List<Chapter> chapters) {
-    public static Document withTitle(String title) {
-        return new Document(title, new ArrayList<>());
+public record Document(String title, String content, List<ChapterData> chapterData) {
+    public void forEachChapter(Consumer<Chapter> chapterConsumer) {
+        for (var c : chapterData) {
+            var chapterContent = content.substring(c.contentStart(), c.contentEnd());
+            chapterConsumer.accept(new Chapter(c.title(), chapterContent));
+        }
     }
 }

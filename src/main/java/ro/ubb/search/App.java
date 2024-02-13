@@ -15,9 +15,10 @@ public class App {
         processDocuments(document -> {
             System.out.printf("===== %s =====\n", document.title());
 
-            for (var chapter : document.chapters()) {
+            document.forEachChapter(chapter -> {
                 System.out.printf("* %s\n", chapter.title());
-            }
+                //System.out.printf("%s\n\n", chapter.content());
+            });
 
             System.out.println();
         });
