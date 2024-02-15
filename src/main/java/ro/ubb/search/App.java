@@ -1,9 +1,19 @@
 package ro.ubb.search;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import ro.ubb.search.document.Document;
 import ro.ubb.search.document.Parser;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -12,16 +22,39 @@ public class App {
     private static final String SEARCH_DIRECTORY = "data";
 
     public static void main(String[] args) {
-        processDocuments(document -> {
-            System.out.printf("===== %s =====\n", document.title());
+        Path indexPath = Paths.get("lucene_index");
+        Analyzer analyzer = new StandardAnalyzer();
 
-            document.forEachChapter(chapter -> {
-                System.out.printf("* %s\n", chapter.title());
-                //System.out.printf("%s\n\n", chapter.content());
+        try {
+            Directory directory = FSDirectory.open(indexPath);
+
+            IndexWriterConfig config = new IndexWriterConfig(analyzer);
+
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            processDocuments(document -> {
+                document.forEachChapter(chapter -> {
+                    // Create a Lucene Document
+                    org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
+                    luceneDocument.add(new TextField("chapterTitle", chapter.title(), TextField.Store.YES));
+                    luceneDocument.add(new TextField("content", chapter.content(), TextField.Store.YES));
+                    // Add the Lucene Document to the index
+                    try {
+                        indexWriter.addDocument(luceneDocument);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             });
 
-            System.out.println();
-        });
+            indexWriter.commit();
+            indexWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private static void processDocuments(Consumer<Document> documentConsumer) {
