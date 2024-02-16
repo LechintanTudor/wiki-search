@@ -27,20 +27,18 @@ public class IndexBuilder {
         var indexWriter = new IndexWriter(directory, config);
 
         processDocuments(inputDirectory, document -> {
-            document.forEachChapter(chapter -> {
-                // Create a Lucene Document
-                org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
-                luceneDocument.add(new TextField("chapterTitle", chapter.title(), TextField.Store.YES));
-                luceneDocument.add(new TextField("content", chapter.content(), TextField.Store.YES));
+            // Create a Lucene Document
+            org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
+            luceneDocument.add(new TextField("title", document.title(), TextField.Store.YES));
+            luceneDocument.add(new TextField("content", document.content(), TextField.Store.YES));
 
-                // Add the Lucene Document to the index
-                try {
-                    System.out.printf("Indexing '%s'.\n", chapter.title());
-                    indexWriter.addDocument(luceneDocument);
-                } catch (IOException error) {
-                    System.out.printf("[ERROR]: %s\n", error.getMessage());
-                }
-            });
+            // Add the Lucene Document to the index
+            try {
+                System.out.printf("Indexing '%s'.\n", document.title());
+                indexWriter.addDocument(luceneDocument);
+            } catch (IOException error) {
+                System.out.printf("[ERROR]: %s\n", error.getMessage());
+            }
         });
 
         indexWriter.commit();
