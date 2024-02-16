@@ -1,7 +1,6 @@
 package ro.ubb.search.document;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class Parser {
@@ -20,7 +19,7 @@ public class Parser {
 
         var titleToken = lexer.nextToken();
         if (titleToken.kind() != TokenKind.Title) {
-            throw new ParserError(titleToken, List.of(TokenKind.Title));
+            titleToken = new Token(TokenKind.Title, 0, "<unknown>");
         }
 
         var chapterData = new ArrayList<ChapterData>();
@@ -43,11 +42,11 @@ public class Parser {
             // Read chapter title
             var chapterToken = lexer.nextToken();
             if (chapterToken.kind() != TokenKind.Chapter) {
-                throw new ParserError(chapterToken, List.of(TokenKind.Chapter));
+                continue;
             }
 
             // Update chapter hierarchy
-            while (chapterHierarchy.size() != chapterToken.level()) {
+            while (chapterHierarchy.size() > 1 && chapterHierarchy.size() != chapterToken.level()) {
                 chapterHierarchy.remove(chapterHierarchy.size() - 1);
             }
             chapterHierarchy.add(chapterToken.content());

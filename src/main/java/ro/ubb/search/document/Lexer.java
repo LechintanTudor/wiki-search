@@ -56,7 +56,12 @@ public class Lexer {
             }
         }
 
-        var title = currentLine.substring(i, currentLine.length() - i);
+        var title = currentLine;
+
+        if (i < currentLine.length() - 1) {
+            title = currentLine.substring(i, currentLine.length() - i);
+        }
+
         return new Token(TokenKind.Chapter, i - 1, title);
     }
 }

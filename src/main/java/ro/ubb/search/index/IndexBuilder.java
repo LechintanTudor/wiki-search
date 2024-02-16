@@ -1,64 +1,54 @@
-package ro.ubb.search;
+package ro.ubb.search.index;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import ro.ubb.search.document.Document;
 import ro.ubb.search.document.Parser;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public class App {
-    private static final String SEARCH_DIRECTORY = "data";
+public class IndexBuilder {
+    public static void buildIndex(String inputDirectory, String outputDirectory) throws Exception {
+        var indexPath = Paths.get(outputDirectory);
+        var analyzer = new StandardAnalyzer();
 
-    public static void main(String[] args) {
-        Path indexPath = Paths.get("lucene_index");
-        Analyzer analyzer = new StandardAnalyzer();
+        var directory = FSDirectory.open(indexPath);
 
-        try {
-            Directory directory = FSDirectory.open(indexPath);
+        var config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
-            IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        var indexWriter = new IndexWriter(directory, config);
 
-            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+        processDocuments(inputDirectory, document -> {
+            document.forEachChapter(chapter -> {
+                // Create a Lucene Document
+                org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
+                luceneDocument.add(new TextField("chapterTitle", chapter.title(), TextField.Store.YES));
+                luceneDocument.add(new TextField("content", chapter.content(), TextField.Store.YES));
 
-            IndexWriter indexWriter = new IndexWriter(directory, config);
-
-            processDocuments(document -> {
-                document.forEachChapter(chapter -> {
-                    // Create a Lucene Document
-                    org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
-                    luceneDocument.add(new TextField("chapterTitle", chapter.title(), TextField.Store.YES));
-                    luceneDocument.add(new TextField("content", chapter.content(), TextField.Store.YES));
-                    // Add the Lucene Document to the index
-                    try {
-                        indexWriter.addDocument(luceneDocument);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                // Add the Lucene Document to the index
+                try {
+                    System.out.printf("Indexing '%s'.\n", chapter.title());
+                    indexWriter.addDocument(luceneDocument);
+                } catch (IOException error) {
+                    System.out.printf("[ERROR]: %s\n", error.getMessage());
+                }
             });
+        });
 
-            indexWriter.commit();
-            indexWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        indexWriter.commit();
+        indexWriter.close();
     }
 
-    private static void processDocuments(Consumer<Document> documentConsumer) {
-        for (var fileName : getDocumentFileNames(SEARCH_DIRECTORY)) {
+    private static void processDocuments(String directory, Consumer<Document> documentConsumer) {
+        for (var fileName : getDocumentFileNames(directory)) {
             BufferedReader reader;
 
             try {
