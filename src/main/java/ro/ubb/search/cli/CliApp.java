@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import ro.ubb.search.index.IndexBuilder;
 import ro.ubb.search.index.IndexSearcher;
 import ro.ubb.search.index.SearchResult;
+import ro.ubb.search.question.QuestionParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,7 @@ public class CliApp {
     private static final String LUCENE_INPUT = "lucene_input";
     private static final String LUCENE_OUTPUT = "lucene_output";
     private static final String LUCENE_DOCUMENTS = "lucene_documents";
+    private static final String QUESTIONS_FILE = "questions.txt";
 
     private boolean isRunning;
     private final Map<String, Command> commands;
@@ -26,6 +28,7 @@ public class CliApp {
         commands.put("index", new Command(this::cmdIndex, "Build the Lucene index."));
         commands.put("reset", new Command(this::cmdReset, "Reset the Lucene index."));
         commands.put("search", new Command(this::cmdSearch, "Search the Lucene index."));
+        commands.put("answer", new Command(this::cmdAnswer, "Answer the questions in the questions file."));
         this.commands = commands;
     }
 
@@ -102,7 +105,8 @@ public class CliApp {
         List<SearchResult> results;
 
         try {
-            results = IndexSearcher.searchIndex(LUCENE_OUTPUT, args);
+            var indexSearcher = new IndexSearcher(LUCENE_OUTPUT);
+            results = indexSearcher.search(args, 10);
         } catch (Exception error) {
             throw new RuntimeException(error);
         }
@@ -111,6 +115,28 @@ public class CliApp {
 
         for (var result : results) {
             System.out.printf("- [%.4f] %s\n", result.score(), result.title());
+        }
+    }
+
+    private void cmdAnswer(String args) {
+        System.out.println("Answering questions.");
+
+        try {
+            var questions = QuestionParser.parseQuestions(QUESTIONS_FILE);
+            var indexSearcher = new IndexSearcher(LUCENE_OUTPUT);
+
+            for (int i = 0; i < questions.size(); ++i) {
+                var question = questions.get(i);
+                var results = indexSearcher.search(question.toQuery(), 1);
+                var result = results.isEmpty() ? "<not_found>" : results.get(0).title();
+
+                System.out.printf("%d) %s\n", i + 1, question.question());
+                System.out.printf("  FOUND: %s\n", result);
+                System.out.printf("CORRECT: %s\n", question.answer());
+                System.out.println();
+            }
+        } catch (Exception error) {
+            throw new RuntimeException(error);
         }
     }
 }

@@ -2,6 +2,7 @@ package ro.ubb.search.index;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.store.FSDirectory;
 
@@ -11,17 +12,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class IndexSearcher {
-    public static List<SearchResult> searchIndex(String directory, String queryString) throws Exception {
+    private final QueryParser queryParser;
+    private final org.apache.lucene.search.IndexSearcher indexSearcher;
+    private final StoredFields storedFields;
+
+    public IndexSearcher(String directory) throws Exception {
         var analyzer = new StandardAnalyzer();
-        var queryParser = new QueryParser("content", analyzer);
-        var query = queryParser.parse(queryString);
+        this.queryParser = new QueryParser("content", analyzer);
 
         var indexDirectory = FSDirectory.open(Paths.get(directory));
         var indexReader = DirectoryReader.open(indexDirectory);
-        var indexSearcher = new org.apache.lucene.search.IndexSearcher(indexReader);
 
-        var storedFields = indexReader.storedFields();
-        var hits = indexSearcher.search(query, 10).scoreDocs;
+        this.indexSearcher = new org.apache.lucene.search.IndexSearcher(indexReader);
+        this.storedFields = indexReader.storedFields();
+    }
+
+    public List<SearchResult> search(String queryString, int count) throws Exception {
+        var query = queryParser.parse(queryString);
+        var hits = indexSearcher.search(query, count).scoreDocs;
 
         return Arrays.stream(hits).map(hit -> {
             try {
