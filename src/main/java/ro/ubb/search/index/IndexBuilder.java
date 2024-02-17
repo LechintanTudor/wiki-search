@@ -9,13 +9,20 @@ import ro.ubb.search.document.Document;
 import ro.ubb.search.document.Parser;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class IndexBuilder {
-    public static void buildIndex(String inputDirectory, String outputDirectory) throws Exception {
+    public static void buildIndex(
+        String inputDirectory,
+        String outputDirectory,
+        String documentDirectory
+    ) throws Exception {
+        Files.createDirectories(Paths.get(documentDirectory));
+
         var indexPath = Paths.get(outputDirectory);
         var analyzer = new StandardAnalyzer();
 
@@ -31,6 +38,12 @@ public class IndexBuilder {
             org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
             luceneDocument.add(new TextField("title", document.title(), TextField.Store.YES));
             luceneDocument.add(new TextField("content", document.content(), TextField.Store.YES));
+
+            try (var writer = new PrintWriter(String.format("%s/%s.txt", documentDirectory, document.title()))) {
+                writer.println(document.content());
+            } catch (FileNotFoundException e) {
+                System.out.println("[ERROR]: Cannot write document.");
+            }
 
             // Add the Lucene Document to the index
             try {

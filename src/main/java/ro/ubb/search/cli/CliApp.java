@@ -12,6 +12,7 @@ import java.util.*;
 public class CliApp {
     private static final String LUCENE_INPUT = "lucene_input";
     private static final String LUCENE_OUTPUT = "lucene_output";
+    private static final String LUCENE_DOCUMENTS = "lucene_documents";
 
     private boolean isRunning;
     private final Map<String, Command> commands;
@@ -79,6 +80,7 @@ public class CliApp {
     private void cmdReset(String args) {
         try {
             FileUtils.deleteDirectory(new File(LUCENE_OUTPUT));
+            FileUtils.deleteDirectory(new File(LUCENE_DOCUMENTS));
             System.out.println("Lucene index deleted successfully!");
         } catch (IOException error) {
             throw new RuntimeException(error);
@@ -87,7 +89,7 @@ public class CliApp {
 
     private void cmdIndex(String args) {
         try {
-            IndexBuilder.buildIndex(LUCENE_INPUT, LUCENE_OUTPUT);
+            IndexBuilder.buildIndex(LUCENE_INPUT, LUCENE_OUTPUT, LUCENE_DOCUMENTS);
             System.out.println("Lucene index built successfully!");
         } catch (Exception error) {
             throw new RuntimeException(error);
