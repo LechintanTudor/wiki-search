@@ -136,6 +136,7 @@ public class CliApp {
                 System.out.println();
             }
         } catch (Exception error) {
+            System.out.println("1");
             throw new RuntimeException(error);
         }
     }
