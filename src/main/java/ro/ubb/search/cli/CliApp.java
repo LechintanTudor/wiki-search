@@ -124,7 +124,7 @@ public class CliApp {
         try {
             var questions = QuestionParser.parseQuestions(QUESTIONS_FILE);
             var indexSearcher = new IndexSearcher(LUCENE_OUTPUT);
-
+            var counter = 0;
             for (int i = 0; i < questions.size(); ++i) {
                 var question = questions.get(i);
                 var results = indexSearcher.search(question.toQuery(), 1);
@@ -134,10 +134,19 @@ public class CliApp {
                 System.out.printf("  FOUND: %s\n", result);
                 System.out.printf("CORRECT: %s\n", question.answer());
                 System.out.println();
+                if (Objects.equals(trimAndLowerCase(question.answer()), trimAndLowerCase(result)) ||
+                        Objects.equals(trimAndLowerCase(result), trimAndLowerCase(question.answer()))) {
+                    counter += 1;
+                }
             }
+            System.out.print("Number of correct answers:");
+            System.out.print(counter);
         } catch (Exception error) {
             System.out.println("1");
             throw new RuntimeException(error);
         }
+    }
+    private String trimAndLowerCase(String input) {
+        return input.trim().toLowerCase();
     }
 }

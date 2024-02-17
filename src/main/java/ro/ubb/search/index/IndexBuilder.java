@@ -1,5 +1,6 @@
 package ro.ubb.search.index;
 
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
@@ -24,7 +25,7 @@ public class IndexBuilder {
         Files.createDirectories(Paths.get(documentDirectory));
 
         var indexPath = Paths.get(outputDirectory);
-        var analyzer = new StandardAnalyzer();
+        var analyzer = new EnglishAnalyzer();
 
         var directory = FSDirectory.open(indexPath);
 

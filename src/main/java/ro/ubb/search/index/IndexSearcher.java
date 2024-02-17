@@ -1,9 +1,11 @@
 package ro.ubb.search.index;
 
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
@@ -17,7 +19,8 @@ public class IndexSearcher {
     private final StoredFields storedFields;
 
     public IndexSearcher(String directory) throws Exception {
-        var analyzer = new StandardAnalyzer();
+        var analyzer = new EnglishAnalyzer();
+
         this.queryParser = new QueryParser("content", analyzer);
 
         var indexDirectory = FSDirectory.open(Paths.get(directory));
