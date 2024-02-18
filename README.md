@@ -1,6 +1,7 @@
 # Wiki Search
 
-Wikipedia search powered by Apache Lucene.
+Wikipedia search powered by Apache Lucene. Written and video presentations can
+be found in [docs](./docs).
 
 ## Team Members
 
@@ -10,4 +11,5 @@ Wikipedia search powered by Apache Lucene.
 
 ## Running the Project
 
-To compile and run the project use `mvn compile exec:java`.
+To compile and run the project use `mvn compile exec:java` in the root of the
+project.
