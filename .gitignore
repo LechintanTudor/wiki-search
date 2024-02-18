@@ -1,3 +1,5 @@
 /.idea
 /target
+
 /lucene_*
+!/lucene_input
