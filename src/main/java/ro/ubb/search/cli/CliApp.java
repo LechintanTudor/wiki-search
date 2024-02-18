@@ -29,7 +29,7 @@ public class CliApp {
         commands.put("reset", new Command(this::cmdReset, "Reset the Lucene index."));
         commands.put("search", new Command(this::cmdSearch, "Search the Lucene index."));
         commands.put("answer", new Command(this::cmdAnswer, "Answer the questions in the questions file."));
-        commands.put("answer2", new Command(this::cmdAnswer2, "Answer the questions in the questions file."));
+        commands.put("answer2", new Command(this::cmdAnswer2, "Return the top 5 answers for the questions in the question file."));
         this.commands = commands;
     }
 
@@ -158,7 +158,7 @@ public class CliApp {
 
             for (int i = 0; i < questions.size(); ++i) {
                 var question = questions.get(i);
-                var results = indexSearcher.search(question.toQuery(), 10);
+                var results = indexSearcher.search(question.toQuery(), 5);
                 var result = results.isEmpty() ? "<not_found>" : results.get(0).title();
 
                 System.out.printf("%d) %s\n", i + 1, question.question());
