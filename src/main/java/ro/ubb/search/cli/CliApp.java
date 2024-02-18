@@ -139,8 +139,7 @@ public class CliApp {
                     counter += 1;
                 }
             }
-            System.out.print("Number of correct answers:");
-            System.out.print(counter);
+            System.out.printf("Number of correct answers: %d\n", counter);
         } catch (Exception error) {
             System.out.println("1");
             throw new RuntimeException(error);
