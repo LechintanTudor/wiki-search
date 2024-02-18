@@ -29,6 +29,7 @@ public class CliApp {
         commands.put("reset", new Command(this::cmdReset, "Reset the Lucene index."));
         commands.put("search", new Command(this::cmdSearch, "Search the Lucene index."));
         commands.put("answer", new Command(this::cmdAnswer, "Answer the questions in the questions file."));
+        commands.put("answer2", new Command(this::cmdAnswer2, "Answer the questions in the questions file."));
         this.commands = commands;
     }
 
@@ -125,6 +126,7 @@ public class CliApp {
             var questions = QuestionParser.parseQuestions(QUESTIONS_FILE);
             var indexSearcher = new IndexSearcher(LUCENE_OUTPUT);
             var counter = 0;
+
             for (int i = 0; i < questions.size(); ++i) {
                 var question = questions.get(i);
                 var results = indexSearcher.search(question.toQuery(), 1);
@@ -134,18 +136,53 @@ public class CliApp {
                 System.out.printf("  FOUND: %s\n", result);
                 System.out.printf("CORRECT: %s\n", question.answer());
                 System.out.println();
-                if (Objects.equals(trimAndLowerCase(question.answer()), trimAndLowerCase(result)) ||
-                        Objects.equals(trimAndLowerCase(result), trimAndLowerCase(question.answer()))) {
+
+                if (Objects.equals(trimAndLowerCase(question.answer()), trimAndLowerCase(result))) {
                     counter += 1;
                 }
             }
+
             System.out.printf("Number of correct answers: %d\n", counter);
         } catch (Exception error) {
-            System.out.println("1");
             throw new RuntimeException(error);
         }
     }
-    private String trimAndLowerCase(String input) {
+
+    private void cmdAnswer2(String args) {
+        System.out.println("Answering questions.");
+
+        try {
+            var questions = QuestionParser.parseQuestions(QUESTIONS_FILE);
+            var indexSearcher = new IndexSearcher(LUCENE_OUTPUT);
+            var counter = 0;
+
+            for (int i = 0; i < questions.size(); ++i) {
+                var question = questions.get(i);
+                var results = indexSearcher.search(question.toQuery(), 10);
+                var result = results.isEmpty() ? "<not_found>" : results.get(0).title();
+
+                System.out.printf("%d) %s\n", i + 1, question.question());
+                System.out.printf("CORRECT: %s\n", question.answer());
+                System.out.printf("ANSWER0: %s\n", result);
+
+                for (int j = 1; j < results.size(); ++j) {
+                    System.out.printf("ANSWER%d: %s\n", j, results.get(j).title());
+                }
+
+                System.out.println();
+
+                if (Objects.equals(trimAndLowerCase(question.answer()), trimAndLowerCase(result))) {
+                    counter += 1;
+                }
+            }
+
+            System.out.printf("Number of correct answers: %d\n", counter);
+        } catch (Exception error) {
+            throw new RuntimeException(error);
+        }
+    }
+
+    private static String trimAndLowerCase(String input) {
         return input.trim().toLowerCase();
     }
 }
